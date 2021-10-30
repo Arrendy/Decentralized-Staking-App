@@ -6,9 +6,18 @@ import "./ExampleExternalContract.sol"; //https://github.com/OpenZeppelin/openze
 contract Staker {
 
   ExampleExternalContract public exampleExternalContract;
+  mapping(address => uint256) public balances;
 
   constructor(address exampleExternalContractAddress) public {
     exampleExternalContract = ExampleExternalContract(exampleExternalContractAddress);
+  }
+
+  event Stake(address, uint256);
+
+  function stake(uint256 value) public payable {
+    address sender = msg.sender;
+    balances[sender] += value;
+    emit Stake(sender, balances[sender]);
   }
 
   // Collect funds in a payable `stake()` function and track individual `balances` with a mapping:
