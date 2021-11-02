@@ -4,7 +4,7 @@ contract ExampleExternalContract {
 
   bool public completed;
 
-  function complete() public payable {
+  function complete(uint value) public payable {
     completed = true;
   }
 

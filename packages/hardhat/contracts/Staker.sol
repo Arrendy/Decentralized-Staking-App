@@ -6,7 +6,15 @@ import "./ExampleExternalContract.sol"; //https://github.com/OpenZeppelin/openze
 contract Staker {
 
   ExampleExternalContract public exampleExternalContract;
+
+  // Address balances
   mapping(address => uint256) public balances;
+
+  // Threshold
+  uint256 public constant threshold = 1 ether;
+
+  // Deadline
+  uint256 public deadline = block.timestamp + 30 seconds;
 
   constructor(address exampleExternalContractAddress) public {
     exampleExternalContract = ExampleExternalContract(exampleExternalContractAddress);
@@ -14,15 +22,31 @@ contract Staker {
 
   event Stake(address, uint256);
 
-  function stake(uint256 value) public payable {
-    address sender = msg.sender;
-    balances[sender] += value;
+  function stake(uint256 qty) public payable {
+    address payable sender = msg.sender;
+    balances[sender] += qty;
+    (bool sent, bytes memory data) = sender.call{value: qty}("");
+    require(sent, "Failed to send Ether");
+    // payable(sender).transfer(value);
+    // payable(address(this)).balance += value;
+    // bool sent = payable(address(this)).send(msg.value);
+    // require(sent, "didn't send");
+    
     emit Stake(sender, balances[sender]);
   }
 
-  // Collect funds in a payable `stake()` function and track individual `balances` with a mapping:
-  //  ( make sure to add a `Stake(address,uint256)` event and emit it for the frontend <List/> display )
+function execute() public payable {
+  require(address(this).balance >= threshold, "below threshold");
+  exampleExternalContract.complete({value: address(this).balance});
+}
 
+function withdraw() public payable{
+ require(address(this).balance >= threshold, "below threshold");
+}
+
+function timeleft() view public {
+
+}
 
   // After some `deadline` allow anyone to call an `execute()` function
   //  It should either call `exampleExternalContract.complete{value: address(this).balance}()` to send all the value
