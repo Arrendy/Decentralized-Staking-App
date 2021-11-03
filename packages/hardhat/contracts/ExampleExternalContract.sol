@@ -1,10 +1,10 @@
-pragma solidity >=0.6.0 <0.7.0;
+pragma solidity ^0.8.4;
 
 contract ExampleExternalContract {
 
   bool public completed;
 
-  function complete(uint value) public payable {
+  function complete() public payable {
     completed = true;
   }
 

@@ -1,4 +1,4 @@
-pragma solidity >=0.6.0 <0.7.0;
+pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
 import "./ExampleExternalContract.sol"; //https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol
@@ -16,48 +16,56 @@ contract Staker {
   // Deadline
   uint256 public deadline = block.timestamp + 30 seconds;
 
+  modifier stakeNotCompleted() {
+    bool completed = exampleExternalContract.completed();
+    require(!completed, "staking process already completed");
+    _;
+  }
+
+  modifier deadlineReached( bool requireReached ) {
+    uint256 timeRemaining = timeLeft();
+    require(timeRemaining > 0);
+    _;
+  }
+
   constructor(address exampleExternalContractAddress) public {
     exampleExternalContract = ExampleExternalContract(exampleExternalContractAddress);
   }
 
   event Stake(address, uint256);
 
-  function stake(uint256 qty) public payable {
-    address payable sender = msg.sender;
-    balances[sender] += qty;
-    (bool sent, bytes memory data) = sender.call{value: qty}("");
-    require(sent, "Failed to send Ether");
-    // payable(sender).transfer(value);
-    // payable(address(this)).balance += value;
-    // bool sent = payable(address(this)).send(msg.value);
-    // require(sent, "didn't send");
+  function stake() public payable deadlineReached(false) stakeNotCompleted {
+    address sender = msg.sender;
+    balances[sender] += msg.value;
     
     emit Stake(sender, balances[sender]);
   }
 
-function execute() public payable {
-  require(address(this).balance >= threshold, "below threshold");
-  exampleExternalContract.complete({value: address(this).balance});
+function execute() public stakeNotCompleted deadlineReached(false) {
+  uint256 contractBalance = address(this).balance;
+  require(contractBalance >= threshold, "below threshold");
+  
+  (bool sent,) = address(exampleExternalContract).call{value: contractBalance}(abi.encodeWithSignature("complete()"));
+  require(sent, "could not send");
 }
 
-function withdraw() public payable{
- require(address(this).balance >= threshold, "below threshold");
+function withdraw() public deadlineReached(true) stakeNotCompleted {
+  uint256 userBalance = balances[msg.sender];
+  require(userBalance >= 0, "no coins");
+
+  balances[msg.sender] = 0;
+
+  (bool sent,) = msg.sender.call{value: userBalance}("");
+  require(sent, "withdraw failed");
 }
 
-function timeleft() view public {
 
-}
-
-  // After some `deadline` allow anyone to call an `execute()` function
-  //  It should either call `exampleExternalContract.complete{value: address(this).balance}()` to send all the value
-
-
-
-  // if the `threshold` was not met, allow everyone to call a `withdraw()` function
-
-
-
-  // Add a `timeLeft()` view function that returns the time left before the deadline for the frontend
-
-
+function timeLeft() public view returns (uint256 timeleft) {
+    // if( block.timestamp >= deadline ) {
+    //   return 0;
+    // } else {
+    //   return deadline - block.timestamp;
+    // }
+    return 1;
+  }
 }

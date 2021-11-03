@@ -457,8 +457,7 @@ function App(props) {
     localProvider &&
     localProvider._network &&
     localProvider._network.chainId === 31337 &&
-    yourLocalBalance &&
-    ethers.utils.formatEther(yourLocalBalance) <= 0
+    yourLocalBalance 
   ) {
     faucetHint = (
       <div style={{ padding: 16 }}>
@@ -467,9 +466,9 @@ function App(props) {
           onClick={() => {
             faucetTx({
               to: address,
-              value: ethers.utils.parseEther("0.01"),
+              value: ethers.utils.parseEther("10"),
             });
-            setFaucetClicked(true);
+            setFaucetClicked(false);
           }}
         >
           💰 Grab funds from the faucet ⛽️
