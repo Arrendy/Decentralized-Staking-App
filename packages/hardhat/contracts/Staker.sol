@@ -22,9 +22,13 @@ contract Staker {
     _;
   }
 
-  modifier deadlineReached( bool requireReached ) {
+  modifier deadlineReached( bool reached ) {
     uint256 timeRemaining = timeLeft();
-    require(timeRemaining > 0);
+    if(reached) {
+      require(timeRemaining > 0);
+    } else {
+      require(timeRemaining == 0);
+    }
     _;
   }
 
@@ -61,11 +65,12 @@ function withdraw() public deadlineReached(true) stakeNotCompleted {
 
 
 function timeLeft() public view returns (uint256 timeleft) {
-    // if( block.timestamp >= deadline ) {
-    //   return 0;
-    // } else {
-    //   return deadline - block.timestamp;
-    // }
-    return 1;
+  // block.timestamp does not seem like the right thing to use
+    if( block.timestamp >= deadline ) {
+      return 0;
+    } else {
+      return deadline - block.timestamp;
+    }
   }
+
 }
