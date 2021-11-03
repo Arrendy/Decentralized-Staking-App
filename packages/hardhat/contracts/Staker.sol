@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
@@ -32,7 +33,7 @@ contract Staker {
     _;
   }
 
-  constructor(address exampleExternalContractAddress) public {
+  constructor(address exampleExternalContractAddress) {
     exampleExternalContract = ExampleExternalContract(exampleExternalContractAddress);
   }
 
